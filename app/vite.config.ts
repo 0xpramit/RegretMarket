@@ -20,24 +20,35 @@ export default defineConfig({
 			root: resolve(__dirname),
 		}),
 	],
+	define: {
+		'process.env': {},
+	},
 	resolve: {
 		alias: {
-			'rpc-websockets': 'rpc-websockets/dist/lib/client/websocket.browser.js'
-		}
+			'rpc-websockets/dist/lib/client': 'rpc-websockets',
+		},
 	},
 	optimizeDeps: {
-		include: ['rpc-websockets', '@solana/web3.js'],
 		esbuildOptions: {
 			target: 'esnext',
-		}
+		},
 	},
 	build: {
 		target: 'esnext',
 		commonjsOptions: {
-			transformMixedEsModules: true
+			transformMixedEsModules: true,
 		},
 		rollupOptions: {
-			external: [],
-		}
-	}
+			onwarn(warning, warn) {
+				// Ignore the rpc-websockets resolution warning
+				if (
+					warning.code === 'UNRESOLVED_IMPORT' &&
+					warning.message.includes('rpc-websockets')
+				) {
+					return
+				}
+				warn(warning)
+			},
+		},
+	},
 })
